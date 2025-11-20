@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>PS-Store Checker (AT)</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f0f0f0; padding: 20px; }
+  #liveClock { font-size: 1.5em; margin-bottom: 20px; }
+  .status { font-weight: bold; padding: 10px; margin: 10px 0; border-radius: 5px; display: inline-block; }
+  .available { background-color: #4caf50; color: white; }
+  .unavailable { background-color: #f44336; color: white; }
+  button { margin: 5px; padding: 10px 15px; font-size: 1em; cursor: pointer; }
+  #metaInfo, #reason { margin: 5px 0; font-size: 0.9em; color: #333; }
+</style>
+</head>
+<body>
+<h1>PS-Store Checker (AT)</h1>
+<h2>Where Winds Meet</h2>
+<div id="liveClock">Aktuelle Zeit: --:--:--</div>
+<div id="statusBox" class="status unavailable">Status: unbekannt</div>
+<div id="metaInfo">Letzte Prüfung: —</div>
+<div id="reason">Grund: —</div>
+
+<button id="startBtn">Start</button>
+<button id="stopBtn">Stop</button>
+<button id="checkNowBtn">Jetzt prüfen</button>
+<button id="shutdownBtn">Server stoppen</button>
+
+<audio id="alarmSound" src="/static/alarm.mp3" preload="auto"></audio>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+
+  async function api(path, method="GET") {
+    const opts = { method };
+    const resp = await fetch(path, opts);
+    return resp.json();
+  }
+
+  async function refreshStatus() {
+    try {
+      const s = await api("/status");
+      const box = document.getElementById("statusBox");
+      box.className = "status " + (s.status || "unknown");
+      box.textContent = "Status: " + (s.status || "unbekannt");
+      document.getElementById("metaInfo").textContent = "Letzte Prüfung: " + (s.last_check || "—");
+      document.getElementById("reason").textContent = "Grund: " + (s.reason || "—") || "—";
+      if (s.status==="available") {
+        document.getElementById("alarmSound").play().catch(()=>{});
+        document.title="🔥 AVAILABLE - Where Winds Meet";
+      } else {
+        document.title="PS-Store Checker (AT)";
+      }
+    } catch(e){ console.error("Fehler beim Refresh:", e); }
+  }
+
+  document.getElementById("startBtn").addEventListener("click", async()=>{ await api("/start","POST"); refreshStatus(); });
+  document.getElementById("stopBtn").addEventListener("click", async()=>{ await api("/stop","POST"); refreshStatus(); });
+  document.getElementById("checkNowBtn").addEventListener("click", async()=>{
+    const r = await api("/check_now","POST"); 
+    refreshStatus();
+    alert("Check-Ergebnis: " + r.status + " — " + r.reason);
+  });
+  document.getElementById("shutdownBtn").addEventListener("click", async()=>{
+    if(!confirm("Server lokal beenden?")) return;
+    await api("/shutdown","POST");
+  });
+
+  function updateClock() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString("de-DE", { timeZone: "Europe/Vienna", hour12:false });
+    const dateStr = now.toLocaleDateString("de-DE", { timeZone: "Europe/Vienna" });
+    const clockEl = document.getElementById("liveClock");
+    if(clockEl) clockEl.textContent = "Aktuelle Zeit: " + dateStr + " " + timeStr;
+  }
+
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  setInterval(refreshStatus, 5000);
+  refreshStatus();
+});
+</script>
+</body>
+</html>

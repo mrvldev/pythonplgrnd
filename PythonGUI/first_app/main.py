@@ -33,7 +33,7 @@ master_layout = QVBoxLayout()
 row1 = QHBoxLayout()
 row2 = QHBoxLayout()
 row3 = QHBoxLayout()
-#
+
 row1.addWidget(title, alignment=Qt.AlignCenter)
 
 row2.addWidget(text1, alignment=Qt.AlignCenter)
