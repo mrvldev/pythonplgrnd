@@ -1,82 +1,92 @@
 #Imports
 from PyQt5.QtWidgets import QApplication, QWidget, QLineEdit, QPushButton, QHBoxLayout, QVBoxLayout, QGridLayout
+from PyQt5.QtGui import QFont
 
 
-#App Settings
-app = QApplication([])
-main_window = QWidget()
-main_window.setWindowTitle("Taschenrechner App")
-main_window.resize(250, 300)
+class CalcApp(QWidget):
+    def __init__(self):
+        super().__init__()
+         #App Settings
+        self.setWindowTitle("Taschenrechner App")
+        self.resize(250, 300)
 
-#All objects/widgets
+        #All objects/widgets
+        self.text_box = QLineEdit()
+        self.text_box.setFont(QFont("Helvetica", 32))
 
-text_box = QLineEdit()
-grid = QGridLayout()
+         #Grid Layout for buttons
 
-buttons = ['7', '8', '9', '/',
-           '4', '5', '6', '*',
-           '1', '2', '3', '-',
-           '0', '.', '=', '+'
-           ]
 
-clear = QPushButton("Clear")
-delete = QPushButton("<")
+        self.grid = QGridLayout()
 
-def button_click():
-    button = app.sender()
-    text = button.text()
-
-    if text == "=":
-        symbol = text_box.text()
-        try:
-            res = eval(symbol)
-            text_box.setText(str(res))
-        
-        except Exception as e:
-            text_box.setText("Error:", e)
-        
-
-    elif text == "Clear":
-        text_box.clear()
-
-    elif text == "<":
-        current_value = text_box.text()
-        text_box.setText(current_value[:-1])
-
-    else:
-        current_value = text_box.text()
-        text_box.setText(current_value + text)
-
-# Loop for creating buttons
-row = 0
-col = 0
-
-for text in buttons:
-    button = QPushButton(text)
-    button.clicked.connect(button_click)
-    grid.addWidget(button, row, col)
-    col += 1
-
-    if col > 3:
+        self.buttons = ['7', '8', '9', '/',
+                '4', '5', '6', '*',
+                '1', '2', '3', '-',
+                '0', '.', '=', '+'
+                ]
+            # Loop for creating buttons
+        row = 0
         col = 0
-        row += 1
 
-#design
-master_layout = QVBoxLayout()
-master_layout.addWidget(text_box)
-master_layout.addLayout(grid)
+        for text in self.buttons:
+            button = QPushButton(text)
+            button.clicked.connect(self.button_click)
+            button.setStyleSheet("QPushButton { font: 25pt Comic Sans MS; padding: 10px; }")
+            self.grid.addWidget(button, row, col)
+            col += 1
 
-button_row = QHBoxLayout()
-button_row.addWidget(clear)
-button_row.addWidget(delete)
+            if col > 3:
+                col = 0
+                row += 1
 
-master_layout.addLayout(button_row)
+        self.clear = QPushButton("Clear")
+        self.delete = QPushButton("<")
+        self.clear.setStyleSheet("QPushButton { font: 20pt Comic Sans MS; padding: 10px; }")
+        self.delete.setStyleSheet("QPushButton { font: 20pt Comic Sans MS; padding: 10px; }")
 
-main_window.setLayout(master_layout)
+        master_layout = QVBoxLayout()
+        master_layout.addWidget(self.text_box)
+        master_layout.addLayout(self.grid)
 
-delete.clicked.connect(button_click)
-clear.clicked.connect(button_click)
+        button_row = QHBoxLayout()
+        button_row.addWidget(self.clear)
+        button_row.addWidget(self.delete)
+        master_layout.addLayout(button_row)
+        master_layout.setContentsMargins(25, 25, 25, 25)
+
+        self.setLayout(master_layout)
+
+        self.delete.clicked.connect(self.button_click)
+        self.clear.clicked.connect(self.button_click)
+
+    def button_click(self):
+        button = app.sender()
+        text = button.text()
+
+        if text == "=":
+            symbol = self.text_box.text()
+            try:
+                res = eval(symbol)
+                self.text_box.setText(str(res))
+            
+            except Exception as e:
+                self.text_box.setText("Error:", e)
+            
+        elif text == "Clear":
+            self.text_box.clear()
+
+        elif text == "<":
+            current_value = self.text_box.text()
+            self.text_box.setText(current_value[:-1])
+
+        else:
+            current_value = self.text_box.text()
+            self.text_box.setText(current_value + text)
 
 #Show/Run
-main_window.show()
-app.exec_()
+if __name__ == "__main__":
+    app = QApplication([])
+    main_window = CalcApp()
+    main_window.setStyleSheet("QWidget { color: black; background-color: #f0,f0,f8;}")
+    main_window.show()
+    app.exec_()
